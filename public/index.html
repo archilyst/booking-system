@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Запись на занятия</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <h1>Запись на занятия</h1>
+        <div class="header-controls">
+            <button id="statistics-button" class="icon-button" title="Статистика">📊</button>
+            <button id="contacts-button" class="icon-button" title="Контакты">📞</button>
+            <span id="user-email"></span>
+            <button id="admin-panel-button" class="hidden">Админ-панель</button>
+            <button id="logout-button">Выйти</button>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <!-- Календарь -->
+        <section class="calendar-section">
+            <h2>Календарь записей</h2>
+            <div class="calendar-controls">
+                <button id="prev-week">&lt;</button>
+                <h3 id="current-week-label"></h3>
+                <button id="next-week">&gt;</button>
+            </div>
+            <div id="weekly-calendar" class="weekly-calendar"></div>
+        </section>
+
+        <!-- Дисциплины -->
+        <section class="disciplines-section">
+            <h2>Дисциплины</h2>
+            <div id="disciplines-list" class="disciplines-list"></div>
+        </section>
+    </main>
+
+    <!-- Модальное окно записи -->
+    <div id="booking-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h2>Запись на занятие</h2>
+            <form id="booking-form">
+                <div class="form-group">
+                    <label>Дисциплина</label>
+                    <input type="text" id="modal-discipline-name" readonly>
+                    <input type="hidden" id="modal-discipline-id">
+                </div>
+                <div class="form-group">
+                    <label for="modal-booking-date">Дата</label>
+                    <input type="date" id="modal-booking-date" required>
+                    <div id="available-slots-info" style="margin-top:0.5rem;"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="modal-start-time">Начало</label>
+                        <input type="time" id="modal-start-time" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="modal-end-time">Окончание</label>
+                        <input type="time" id="modal-end-time" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="modal-student-name">Имя и фамилия</label>
+                    <input type="text" id="modal-student-name" required placeholder="Иван Иванов">
+                </div>
+                <div class="form-group">
+                    <label for="modal-student-phone">Телефон</label>
+                    <input type="tel" id="modal-student-phone" required placeholder="+7 (999) 123-45-67">
+                </div>
+                <div class="form-group hidden" id="tennis-address-group">
+                    <label for="modal-tennis-address">Адрес теннисного комплекса</label>
+                    <input type="text" id="modal-tennis-address" placeholder="ул. Спортивная, 10">
+                </div>
+                <div id="booking-price" class="price-info"></div>
+                <button type="submit" class="submit-button">Записаться</button>
+                <button type="button" id="multi-booking-toggle" class="multi-booking-toggle">📅 Записаться на несколько недель вперёд</button>
+                <div id="multi-booking-fields" class="multi-booking-fields hidden">
+                    <label for="multi-weeks-count">Количество недель</label>
+                    <input type="number" id="multi-weeks-count" min="1" max="52" value="4" />
+                    <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.5rem;">
+                        Запись будет создана на выбранную дату и время на каждую неделю вперёд
+                    </p>
+                </div>
+                <p id="booking-error" class="error-message"></p>
+                <p id="booking-success" class="success-message"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Админ-панель -->
+    <div id="admin-modal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <span class="modal-close">&times;</span>
+            <h2>Админ-панель</h2>
+            <div class="admin-tabs">
+                <button class="tab-button active" data-tab="pending">Ожидают подтверждения</button>
+                <button class="tab-button" data-tab="all">Все записи</button>
+                <button class="tab-button" data-tab="surveys">📋 Опросы</button>
+            </div>
+            <div id="pending-bookings" class="tab-content active">
+                <div id="pending-list"></div>
+            </div>
+            <div id="all-bookings" class="tab-content">
+                <div id="all-list"></div>
+            </div>
+            <div id="surveys-bookings" class="tab-content">
+                <div class="survey-filters" style="margin-bottom:1rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+                    <button class="survey-filter-btn active" data-filter="all">Все</button>
+                    <button class="survey-filter-btn" data-filter="math">Математика</button>
+                    <button class="survey-filter-btn" data-filter="cs">Информатика</button>
+                    <button class="survey-filter-btn" data-filter="tennis_coach">Тренер</button>
+                    <button class="survey-filter-btn" data-filter="tennis_sparring">Спарринг</button>
+                </div>
+                <div id="surveys-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно статистики -->
+    <div id="statistics-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h2>Статистика за месяц</h2>
+            <div id="statistics-content"></div>
+        </div>
+    </div>
+
+    <!-- Модальное окно контактов -->
+    <div id="contacts-modal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <span class="modal-close">&times;</span>
+            <h2>Обо мне и моих направлениях</h2>
+            <div id="contacts-content">
+                <p>Я преподаю три совершенно разные вещи — математику, информатику и теннис. Объединяет их одно: я умею понятно объяснять и не выхожу из себя, даже если с пятого раза не получилось.</p>
+                <p><strong>Чем я отличаюсь:</strong> Я не даю шаблонов. Я учу решать любые задачи — по коду, по формулам или на корте.</p>
+                <p><strong>Цифры за меня:</strong> ЕГЭ по математике — 94, по информатике — 88. Знаю, как готовиться к экзаменам не на удачу, а на результат.</p>
+                <h3 style="margin-top:1rem;">Коротко о каждом направлении:</h3>
+                <p><strong>Математика</strong> — школьники и первокурсники. Пример: ученица с двойки вышла на твёрдую четвёрку ОГЭ.</p>
+                <p><strong>Информатика</strong> — Python с нуля под ОГЭ/ЕГЭ. Две девочки с полного нуля сдали на 5.</p>
+                <p><strong>Тренер по теннису</strong> — взрослые и дети, от нуля до среднего уровня. Беру мячи и ракетку с собой.</p>
+                <p><strong>Спаринг</strong> — 6 лет за плечами. Агрессивный стиль, высокий темп. Для тех, кто устал от вялых перекидываний.</p>
+                <h3 style="margin-top:1rem;">Где и как:</h3>
+                <p>📐 Математика и информатика — онлайн (любая длительность).</p>
+                <p>🎾 Теннис — на корте клиента (я со своим инвентарём).</p>
+                <p>📝 Записаться — просто напишите, с чем хотите разобраться. Первое занятие пробное, без обязательств.</p>
+                <hr style="border-color: var(--border); margin: 1rem 0;">
+                <p>📧 Email: <strong>teacher@example.com</strong></p>
+                <p>📱 Телефон: <strong>+7 (999) 123-45-67</strong></p>
+                <p>💬 Telegram: <strong>@teacher</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Панель напоминаний -->
+    <div id="reminders-panel" class="reminders-panel">
+        <div class="reminders-header">
+            <span>🔔 Напоминания</span>
+            <button id="reminders-close">&times;</button>
+        </div>
+        <div id="reminders-list" class="reminders-list"></div>
+    </div>
+
+    <!-- Модальное окно опроса -->
+    <div id="survey-modal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <span class="modal-close">&times;</span>
+            <h2 id="survey-title">Опрос</h2>
+            <form id="survey-form"></form>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
